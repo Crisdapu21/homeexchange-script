@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HomeExchange Script Player</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f8f9fb;
+    --surface: #ffffff;
+    --surface2: #f1f3f7;
+    --border: rgba(0,0,0,0.08);
+    --border2: rgba(0,0,0,0.13);
+    --accent: #2d8a4e;
+    --accent2: #22c55e;
+    --accent-dim: rgba(45,138,78,0.09);
+    --text: #1a1d23;
+    --muted: #7a8394;
+    --spanish: #64748b;
+    --question: #dc2626;
+    --question-dim: rgba(220,38,38,0.07);
+    --section-1: #2563eb;
+    --section-2: #16a34a;
+    --section-3: #ea580c;
+    --section-4: #9333ea;
+    --section-5: #dc2626;
+    --playing-bg: #fefce8;
+    --playing-border: #ca8a04;
+    --playing-text: #92400e;
+    --active-bg: rgba(45,138,78,0.06);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .container {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 20px 100px;
+  }
+
+  /* Header */
+  header {
+    padding: 44px 0 32px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 28px;
+  }
+
+  .header-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-dim);
+    border: 1px solid rgba(45,138,78,0.2);
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 14px;
+  }
+
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(26px, 4.5vw, 38px);
+    line-height: 1.2;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  h1 span { color: var(--accent); }
+
+  .header-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* Controls bar */
+  .controls-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+
+  .ctrl-label {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .speed-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .speed-btn:hover { color: var(--text); border-color: var(--border2); }
+  .speed-btn.active { background: var(--accent-dim); border-color: rgba(45,138,78,0.3); color: var(--accent); }
+
+  .divider { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; }
+
+  .toggle-es {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+  }
+  .toggle-es:hover { color: var(--text); }
+  .toggle-es.on { background: rgba(100,116,139,0.1); border-color: rgba(100,116,139,0.25); color: var(--spanish); }
+
+  /* Progress bar */
+  .progress-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 5px;
+    background: var(--surface2);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    width: 0%;
+  }
+
+  .progress-text {
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+    min-width: 60px;
+    text-align: right;
+  }
+
+  /* Section */
+  .section-block {
+    margin-bottom: 16px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+
+  .section-header {
+    padding: 13px 18px;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .section-header:hover { background: var(--surface2); }
+
+  .section-dot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    flex: 1;
+  }
+
+  .section-count {
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--surface2);
+    padding: 3px 9px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+  }
+
+  .section-chevron {
+    color: var(--muted);
+    font-size: 12px;
+    transition: transform 0.2s;
+  }
+  .section-block.collapsed .section-chevron { transform: rotate(-90deg); }
+
+  .section-body {
+    border-top: 1px solid var(--border);
+  }
+  .section-block.collapsed .section-body { display: none; }
+
+  /* Subtitle */
+  .subtitle-row {
+    padding: 9px 18px 7px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+
+  /* Phrase card */
+  .phrase-card {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 13px;
+    align-items: flex-start;
+    transition: background 0.12s;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+  }
+  .phrase-card:last-child { border-bottom: none; }
+  .phrase-card:hover { background: var(--surface2); }
+
+  .phrase-card.active {
+    background: var(--active-bg);
+    border-left-color: var(--accent);
+  }
+  .phrase-card.active.question-card {
+    background: var(--question-dim);
+    border-left-color: var(--question);
+  }
+  .phrase-card.playing {
+    background: var(--playing-bg);
+    border-left-color: var(--playing-border);
+  }
+
+  .phrase-num {
+    font-size: 10px;
+    color: var(--muted);
+    font-weight: 600;
+    min-width: 22px;
+    margin-top: 3px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .phrase-content { flex: 1; }
+
+  .phrase-en {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text);
+    font-weight: 400;
+    margin-bottom: 4px;
+  }
+  /* Question style */
+  .phrase-card.question-card .phrase-en {
+    color: var(--question);
+    font-weight: 500;
+  }
+  .phrase-card.playing .phrase-en {
+    color: var(--playing-text);
+  }
+
+  /* Question badge */
+  .q-badge {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--question);
+    background: var(--question-dim);
+    border: 1px solid rgba(220,38,38,0.18);
+    padding: 1px 7px;
+    border-radius: 10px;
+    margin-right: 7px;
+    vertical-align: middle;
+    position: relative;
+    top: -1px;
+  }
+
+  .phrase-es {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--spanish);
+    font-style: italic;
+  }
+  .phrase-card.question-card .phrase-es {
+    color: rgba(220,38,38,0.55);
+  }
+  .phrase-es.hidden { display: none; }
+
+  .play-btn {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.15s;
+    font-size: 12px;
+    margin-top: 2px;
+  }
+  .play-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+  .phrase-card.question-card .play-btn:hover {
+    border-color: var(--question);
+    color: var(--question);
+    background: var(--question-dim);
+  }
+  .phrase-card.playing .play-btn {
+    border-color: var(--playing-border);
+    color: var(--playing-border);
+    background: rgba(202,138,4,0.1);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(202,138,4,0.3); }
+    50% { box-shadow: 0 0 0 6px rgba(202,138,4,0); }
+  }
+
+  /* Navigation */
+  .nav-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border);
+    padding: 11px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    z-index: 100;
+    box-shadow: 0 -2px 12px rgba(0,0,0,0.07);
+  }
+
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 18px;
+    border-radius: 10px;
+    border: 1px solid var(--border2);
+    background: var(--surface);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .nav-btn:hover:not(:disabled) { color: var(--text); border-color: var(--border2); background: var(--surface2); }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .nav-btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    padding: 8px 26px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .nav-btn.primary:hover:not(:disabled) { background: #246b3e; border-color: #246b3e; }
+  .nav-btn.primary.playing-state {
+    background: var(--playing-border);
+    border-color: var(--playing-border);
+    color: #fff;
+  }
+
+  .current-indicator {
+    font-size: 12px;
+    color: var(--muted);
+    padding: 0 4px;
+    white-space: nowrap;
+    min-width: 52px;
+    text-align: center;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    top: 20px; left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+    background: var(--text);
+    color: #fff;
+    font-size: 13px;
+    padding: 9px 18px;
+    border-radius: 10px;
+    opacity: 0;
+    transition: all 0.2s;
+    pointer-events: none;
+    z-index: 200;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Keyboard hint */
+  .kb-hint {
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 8px;
+    padding-bottom: 4px;
+  }
+  .kb-hint kbd {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: monospace;
+    font-size: 11px;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="header-tag">🎤 Script Player</div>
+    <h1>HomeExchange<br><span>Presentation Guide</span></h1>
+    <p class="header-sub">Wilfer Andres Agudelo Duque &nbsp;·&nbsp; Girardota, Antioquia &nbsp;·&nbsp; Evaluación oral 20%</p>
+  </header>
+
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#16a34a"></div>
+      <span>Frase del guión (inglés)</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#dc2626"></div>
+      <span>Pregunta (rojo)</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#64748b; opacity:0.5"></div>
+      <span>Traducción (español)</span>
+    </div>
+  </div>
+
+  <div class="controls-bar">
+    <span class="ctrl-label">Velocidad:</span>
+    <button class="speed-btn" data-speed="0.75">0.75×</button>
+    <button class="speed-btn active" data-speed="1">1×</button>
+    <button class="speed-btn" data-speed="1.25">1.25×</button>
+    <div class="divider"></div>
+    <button class="toggle-es on" id="toggleEs">
+      <span>👁</span>
+      <span id="toggleEsLabel">Ocultar traducción</span>
+    </button>
+  </div>
+
+  <div class="progress-wrap">
+    <span style="font-size:12px;color:var(--muted);">Progreso</span>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <span class="progress-text" id="progressText">0 / 0</span>
+  </div>
+
+  <div id="scriptContainer"></div>
+
+  <p class="kb-hint">
+    Teclado: <kbd>Espacio</kbd> reproducir &nbsp; <kbd>→</kbd> siguiente &nbsp; <kbd>←</kbd> anterior
+  </p>
+</div>
+
+<div class="nav-bar">
+  <button class="nav-btn" id="btnPrev">← Anterior</button>
+  <button class="nav-btn primary" id="btnPlay">▶ Reproducir</button>
+  <span class="current-indicator" id="currentIndicator">—</span>
+  <button class="nav-btn" id="btnNext">Siguiente →</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// question: true = red in the original doc (FF0000)
+const SCRIPT = [
+  {
+    section: "1. Greeting & Introduction",
+    color: "var(--section-1)",
+    phrases: [
+      { en: "Hi! Welcome to my HomeExchange presentation.", es: "¡Hola! Bienvenido a mi presentación de HomeExchange." },
+      { en: "My name is Wilfer Andres Agudelo Duque. I am 22 years old and I live in Girardota, Antioquia, Colombia.", es: "Mi nombre es Wilfer Andrés Agudelo Duque. Tengo 22 años y vivo en Girardota, Antioquia, Colombia." },
+      { en: "Today I want to show you my home, talk about the chores we do here, and tell you what you can do during your stay. I hope you like it!", es: "Hoy quiero mostrarles mi hogar, hablar sobre los oficios que hacemos aquí y contarles qué pueden hacer durante su estadía. ¡Espero que les guste!" }
+    ]
+  },
+  {
+    section: "2. House Description",
+    color: "var(--section-2)",
+    subsections: [
+      {
+        subtitle: "General",
+        phrases: [
+          { en: "So, let me tell you about my home.", es: "Bueno, déjenme contarles sobre mi hogar." },
+          { en: "What type of housing do you have?", es: "¿Qué tipo de vivienda tienes?", question: true },
+          { en: "I live in a country house — we call it 'casa quinta' in Colombia.", es: "Vivo en una casa de campo que en Colombia llamamos 'casa quinta'." },
+          { en: "How many rooms does your house have?", es: "¿Cuántas habitaciones tiene tu casa?", question: true },
+          { en: "My house has 3 bedrooms, 2 rooms and 2 bathrooms. It is a big and comfortable place with a lot of open space. I live there with my mom, my dad, and my brother.", es: "Mi casa tiene 3 habitaciones, 2 salas y 2 baños. Es un lugar grande y cómodo con mucho espacio abierto. Vivo allí con mi mamá, mi papá y mi hermano." }
+        ]
+      },
+      {
+        subtitle: "Living room & dining area",
+        phrases: [
+          { en: "We have two main living areas. The first one is the TV room. It has a large sofa bed and a smart TV.", es: "Tenemos dos áreas principales de estar. La primera es la sala de TV. Tiene un sofá cama grande y una smart TV." },
+          { en: "On the walls there are paintings that make every space feel warm and nice.", es: "En las paredes hay cuadros que hacen que los ambientes se sientan cálidos y agradables." },
+          { en: "We also have ceiling fans, which are very helpful on hot days.", es: "También tenemos ventiladores de techo, que son muy útiles en los días calurosos." },
+          { en: "Next to the kitchen is the dining area. It has a glass table and chairs where the whole family eats together.", es: "Al lado de la cocina está el comedor. Tiene una mesa de cristal y sillas donde toda la familia come junta." },
+          { en: "There is also another living room that I really like. It has some comfortable chairs and an extra fridge just for drinks.", es: "También hay otra sala que me gusta mucho. Tiene unos muebles cómodos y una nevera adicional solo para bebidas." },
+          { en: "It is a great spot to sit and talk in the afternoons. This room has a large window that opens directly to the pool area, so you can see the pool from inside and just walk right out to it.", es: "Es un lugar ideal para sentarse y conversar en las tardes. Esta sala tiene un ventanal grande que da directamente a la piscina, así que se puede ver la piscina desde adentro y salir directo hacia ella." }
+        ]
+      },
+      {
+        subtitle: "Kitchen",
+        phrases: [
+          { en: "The kitchen has everything you need. There is a fridge, a microwave, a stove, and all the basic things to cook — pots, pans, plates, and cutlery.", es: "La cocina tiene todo lo que necesitan. Hay nevera, microondas, estufa y todas las cosas básicas para cocinar — ollas, sartenes, platos y cubiertos." },
+          { en: "We also have a large marble counter where we prepare the food.", es: "También tenemos un mesón grande de mármol donde preparamos la comida." }
+        ]
+      },
+      {
+        subtitle: "Bedrooms",
+        phrases: [
+          { en: "The house has three bedrooms.", es: "La casa tiene tres habitaciones." },
+          { en: "Each one has a bed, a closet, a ceiling fan, and air conditioning.", es: "Cada una tiene una cama, un closet, un ventilador de techo y aire acondicionado." },
+          { en: "So it is always cool and comfortable, even on very hot days.", es: "Así que siempre está fresco y cómodo, incluso en los días más calurosos." }
+        ]
+      },
+      {
+        subtitle: "Pool area & garden",
+        phrases: [
+          { en: "Outside, we have a beautiful swimming pool with a barbecue area and bathrooms right next to it.", es: "Afuera tenemos una hermosa piscina con zona de barbacoa y baños justo al lado." },
+          { en: "So you have everything you need without going back inside.", es: "Así que tienen todo lo que necesitan sin tener que entrar a la casa." },
+          { en: "We also have a garden with trees around the property.", es: "También tenemos un jardín con árboles alrededor de la propiedad." },
+          { en: "It is very green and peaceful. I really love spending time out there.", es: "Es muy verde y tranquilo. Me encanta pasar tiempo allá afuera." },
+          { en: "The outdoor area is definitely my favorite part of the house.", es: "El área exterior es definitivamente mi parte favorita de la casa." }
+        ]
+      }
+    ]
+  },
+  {
+    section: "3. Household Chores",
+    color: "var(--section-3)",
+    phrases: [
+      { en: "Now let me talk about the chores we do at home. In my family, everyone helps.", es: "Ahora déjenme hablar sobre los oficios del hogar. En mi familia, todos ayudan." },
+      { en: "My mom cooks every day and does the laundry.", es: "Mi mamá cocina todos los días y lava la ropa." },
+      { en: "Who washes the dishes in your house?", es: "¿Quién lava los platos en tu casa?", question: true },
+      { en: "My brother washes the dishes after every meal.", es: "Mi hermano lava los platos después de cada comida." },
+      { en: "Who is in charge of the pool?", es: "¿Quién se encarga de la piscina?", question: true },
+      { en: "My dad takes care of the swimming pool. He cleans it and makes sure it is always ready to use. It is a lot of work!", es: "Mi papá se encarga de la piscina. La limpia y se asegura de que siempre esté lista para usar. ¡Es mucho trabajo!" },
+      { en: "I make my bed every morning, sweep the floor, and keep my room clean. Sometimes I also help in the kitchen.", es: "Yo tiendo mi cama cada mañana, barro el piso y mantengo mi cuarto limpio. A veces también ayudo en la cocina." },
+      { en: "Does your family share household chores?", es: "¿Tu familia comparte los oficios del hogar?", question: true },
+      { en: "Of course! We share the chores so the house is always clean and nice for everyone.", es: "¡Por supuesto! Compartimos los oficios para que la casa siempre esté limpia y agradable para todos." }
+    ]
+  },
+  {
+    section: "4. Free Time Activities",
+    color: "var(--section-4)",
+    phrases: [
+      { en: "Now let me tell you what you can do here in your free time. There are many options!", es: "Ahora déjenme contarles qué pueden hacer aquí en su tiempo libre. ¡Hay muchas opciones!" },
+      { en: "If you like watching TV, we have a TV room with a big smart screen. It is great for movies or series at night.", es: "Si les gusta ver televisión, tenemos una sala de TV con una smart TV grande. Es ideal para películas o series en la noche." },
+      { en: "Everyone in the family has their own phone, so you can connect to the Wi-Fi and use your device.", es: "Cada uno en la familia tiene su propio celular, así que pueden conectarse al Wi-Fi y usar su dispositivo." },
+      { en: "You can browse the internet, listen to music, or watch videos.", es: "Pueden navegar en internet, escuchar música o ver videos." },
+      { en: "What do your parents do in their free time?", es: "¿Qué hacen tus padres en su tiempo libre?", question: true },
+      { en: "My parents really enjoy listening to podcasts on their phones.", es: "A mis papás les encanta escuchar podcasts en sus celulares." },
+      { en: "What do I do in my free time?", es: "¿Qué hago en mi tiempo libre?", question: true },
+      { en: "My favorite thing to do is read on my tablet next to the swimming pool.", es: "Lo que más me gusta hacer es leer en mi tablet al lado de la piscina." },
+      { en: "It is very relaxing — the sound of the water, a good book, and a nice breeze. I really recommend it.", es: "Es muy relajante — el sonido del agua, un buen libro y una brisa agradable. Se los recomiendo." },
+      { en: "You can also use the barbecue area and have a cookout with your family. It is a perfect spot for that.", es: "También pueden usar la zona de barbacoa y hacer un asado con su familia. Es un lugar perfecto para eso." },
+      { en: "And of course, you can always go for a swim or just sit outside and enjoy the garden.", es: "Y por supuesto, siempre pueden nadar o simplemente sentarse afuera y disfrutar el jardín." },
+      { en: "The pool is ready every day because my dad takes good care of it.", es: "La piscina está lista todos los días porque mi papá la cuida muy bien." },
+      { en: "I think you will feel very comfortable here and have a really good time.", es: "Creo que se sentirán muy cómodos aquí y la pasarán muy bien." }
+    ]
+  },
+  {
+    section: "5. Closing",
+    color: "var(--section-5)",
+    phrases: [
+      { en: "Well, that is my home! I hope this video gave you a good idea of what life is like here.", es: "Bueno, ¡esa es mi casa! Espero que este video les haya dado una buena idea de cómo es la vida aquí." },
+      { en: "My house is warm and comfortable, and my family is very friendly.", es: "Mi casa es cálida y cómoda, y mi familia es muy amable." },
+      { en: "I am sure you will have a great time during your HomeExchange stay.", es: "Estoy seguro de que la pasarán muy bien durante su estadía en HomeExchange." },
+      { en: "Thank you very much for watching. Goodbye!", es: "Muchas gracias por ver el video. ¡Hasta luego!" }
+    ]
+  }
+];
+
+// Flatten
+const allPhrases = [];
+SCRIPT.forEach((sec, si) => {
+  const process = (phrases) => phrases.forEach(p => allPhrases.push({ ...p, sectionIdx: si }));
+  if (sec.phrases) process(sec.phrases);
+  if (sec.subsections) sec.subsections.forEach(sub => process(sub.phrases));
+});
+
+let currentIdx = 0;
+let speed = 1;
+let showEs = true;
+let isPlaying = false;
+
+// Build DOM
+const container = document.getElementById('scriptContainer');
+let globalPhraseIdx = 0;
+
+SCRIPT.forEach((sec, si) => {
+  const block = document.createElement('div');
+  block.className = 'section-block';
+
+  let count = 0;
+  if (sec.phrases) count += sec.phrases.length;
+  if (sec.subsections) sec.subsections.forEach(s => count += s.phrases.length);
+
+  block.innerHTML = `
+    <div class="section-header">
+      <div class="section-dot" style="background:${sec.color}"></div>
+      <span class="section-title" style="color:${sec.color}">${sec.section}</span>
+      <span class="section-count">${count} frases</span>
+      <span class="section-chevron">▾</span>
+    </div>
+    <div class="section-body" id="secbody-${si}"></div>
+  `;
+
+  block.querySelector('.section-header').addEventListener('click', () => block.classList.toggle('collapsed'));
+
+  const body = block.querySelector(`#secbody-${si}`);
+
+  const renderPhrases = (phrases, subtitle) => {
+    if (subtitle) {
+      const sub = document.createElement('div');
+      sub.className = 'subtitle-row';
+      sub.textContent = subtitle;
+      body.appendChild(sub);
+    }
+    phrases.forEach(p => {
+      const idx = globalPhraseIdx++;
+      const isQ = !!p.question;
+      const card = document.createElement('div');
+      card.className = 'phrase-card' + (isQ ? ' question-card' : '');
+      card.dataset.idx = idx;
+      card.innerHTML = `
+        <span class="phrase-num">${idx + 1}</span>
+        <div class="phrase-content">
+          <div class="phrase-en">${isQ ? '<span class="q-badge">Pregunta</span>' : ''}${p.en}</div>
+          <div class="phrase-es${showEs ? '' : ' hidden'}">${p.es}</div>
+        </div>
+        <button class="play-btn" title="Reproducir">▶</button>
+      `;
+      card.querySelector('.play-btn').addEventListener('click', e => { e.stopPropagation(); speakPhrase(idx); });
+      card.addEventListener('click', () => selectPhrase(idx));
+      body.appendChild(card);
+    });
+  };
+
+  if (sec.phrases) renderPhrases(sec.phrases, null);
+  if (sec.subsections) sec.subsections.forEach(sub => renderPhrases(sub.phrases, sub.subtitle));
+
+  container.appendChild(block);
+});
+
+function getCard(idx) { return document.querySelector(`.phrase-card[data-idx="${idx}"]`); }
+
+function selectPhrase(idx, scroll = true) {
+  const prev = document.querySelector('.phrase-card.active');
+  if (prev) prev.classList.remove('active');
+  currentIdx = idx;
+  const card = getCard(idx);
+  if (card) {
+    card.classList.add('active');
+    if (scroll) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  updateNav();
+  updateProgress();
+}
+
+function speakPhrase(idx) {
+  if (!('speechSynthesis' in window)) { showToast('Usa Chrome o Edge para la síntesis de voz.'); return; }
+  window.speechSynthesis.cancel();
+  const prev = document.querySelector('.phrase-card.playing');
+  if (prev) prev.classList.remove('playing');
+  selectPhrase(idx);
+  const card = getCard(idx);
+  if (card) card.classList.add('playing');
+
+  const phrase = allPhrases[idx];
+  const utter = new SpeechSynthesisUtterance(phrase.en);
+  utter.lang = 'en-US';
+  utter.rate = speed;
+  utter.pitch = 1;
+
+  const voices = window.speechSynthesis.getVoices();
+  const voice = voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('google'))
+    || voices.find(v => v.lang === 'en-US')
+    || voices.find(v => v.lang.startsWith('en'));
+  if (voice) utter.voice = voice;
+
+  utter.onstart = () => { isPlaying = true; updatePlayBtn(); };
+  utter.onend = () => {
+    isPlaying = false;
+    const c = getCard(idx);
+    if (c) c.classList.remove('playing');
+    updatePlayBtn();
+  };
+  utter.onerror = () => {
+    isPlaying = false;
+    const c = getCard(idx);
+    if (c) c.classList.remove('playing');
+    updatePlayBtn();
+  };
+  window.speechSynthesis.speak(utter);
+}
+
+function updatePlayBtn() {
+  const btn = document.getElementById('btnPlay');
+  if (isPlaying) { btn.textContent = '⏹ Detener'; btn.classList.add('playing-state'); }
+  else { btn.textContent = '▶ Reproducir'; btn.classList.remove('playing-state'); }
+}
+
+function updateNav() {
+  document.getElementById('btnPrev').disabled = currentIdx === 0;
+  document.getElementById('btnNext').disabled = currentIdx === allPhrases.length - 1;
+  document.getElementById('currentIndicator').textContent = `${currentIdx + 1} / ${allPhrases.length}`;
+}
+
+function updateProgress() {
+  const pct = ((currentIdx + 1) / allPhrases.length * 100).toFixed(1);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `${currentIdx + 1} / ${allPhrases.length}`;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+document.getElementById('btnPlay').addEventListener('click', () => {
+  if (isPlaying) {
+    window.speechSynthesis.cancel();
+    isPlaying = false;
+    const prev = document.querySelector('.phrase-card.playing');
+    if (prev) prev.classList.remove('playing');
+    updatePlayBtn();
+  } else { speakPhrase(currentIdx); }
+});
+
+document.getElementById('btnNext').addEventListener('click', () => { if (currentIdx < allPhrases.length - 1) selectPhrase(currentIdx + 1); });
+document.getElementById('btnPrev').addEventListener('click', () => { if (currentIdx > 0) selectPhrase(currentIdx - 1); });
+
+document.querySelectorAll('.speed-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    speed = parseFloat(btn.dataset.speed);
+    showToast(`Velocidad: ${speed}×`);
+  });
+});
+
+document.getElementById('toggleEs').addEventListener('click', () => {
+  showEs = !showEs;
+  const btn = document.getElementById('toggleEs');
+  btn.classList.toggle('on', showEs);
+  document.getElementById('toggleEsLabel').textContent = showEs ? 'Ocultar traducción' : 'Mostrar traducción';
+  document.querySelectorAll('.phrase-es').forEach(el => el.classList.toggle('hidden', !showEs));
+});
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.code === 'Space') {
+    e.preventDefault();
+    if (isPlaying) {
+      window.speechSynthesis.cancel(); isPlaying = false;
+      const prev = document.querySelector('.phrase-card.playing');
+      if (prev) prev.classList.remove('playing');
+      updatePlayBtn();
+    } else { speakPhrase(currentIdx); }
+  }
+  if (e.code === 'ArrowRight' || e.code === 'ArrowDown') { e.preventDefault(); if (currentIdx < allPhrases.length - 1) selectPhrase(currentIdx + 1); }
+  if (e.code === 'ArrowLeft' || e.code === 'ArrowUp') { e.preventDefault(); if (currentIdx > 0) selectPhrase(currentIdx - 1); }
+});
+
+window.speechSynthesis.onvoiceschanged = () => {};
+selectPhrase(0, false);
+updateProgress();
+</script>
+</body>
+</html>
